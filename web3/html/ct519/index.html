@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การใช้งาน AWS EC2 และ Nginx สำหรับ Reverse Proxy และ Load Balancing</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .header {
+            background: #f8f9fa;
+            padding: 20px 0;
+        }
+        .section {
+            padding: 40px 0;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="container">
+            <h1 class="text-center">การใช้งาน AWS EC2 และ Nginx สำหรับ Reverse Proxy และ Load Balancing</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="section">
+            <h2>บทนำ</h2>
+            <p>ในบทความนี้เราจะเรียนรู้เกี่ยวกับการตั้งค่า AWS EC2, การใช้งาน Elastic IP, การติดตั้งและการตั้งค่า Nginx สำหรับ Reverse Proxy และ Load Balancing เพื่อเพิ่มประสิทธิภาพของเว็บไซต์หรือแอพพลิเคชันของคุณ.</p>
+        </section>
+
+        <section class="section">
+            <h2>AWS EC2 และ Elastic IP</h2>
+            <p>AWS EC2 (Elastic Compute Cloud) คือบริการจาก Amazon Web Services ที่ให้คุณสามารถเช่าเซิร์ฟเวอร์เพื่อใช้งานในคลาวด์. Elastic IP คือที่อยู่ IP ที่สามารถผูกกับ EC2 Instance ของคุณเพื่อให้การเข้าถึงเซิร์ฟเวอร์มีความเสถียร.</p>
+            <ul>
+                <li><strong>การสร้าง EC2 Instance:</strong> เข้าสู่ AWS Management Console และไปที่ EC2 Dashboard เพื่อสร้าง Instance ใหม่.</li>
+                <li><strong>การตั้งค่า Elastic IP:</strong> ไปที่ Elastic IPs ใน EC2 Dashboard และสร้าง Elastic IP ใหม่ จากนั้นเชื่อมต่อกับ Instance ของคุณ.</li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <h2>Nginx และ Reverse Proxy</h2>
+            <p>Nginx เป็นเว็บเซิร์ฟเวอร์ที่สามารถใช้เป็น Reverse Proxy Server เพื่อจัดการกับคำขอจากผู้ใช้และกระจายไปยังเซิร์ฟเวอร์หลักอื่น ๆ.</p>
+            <h3>การติดตั้ง Nginx</h3>
+            <pre><code>sudo apt update
+sudo apt install nginx</code></pre>
+            <h3>การตั้งค่า Reverse Proxy</h3>
+            <p>เพื่อให้ Nginx ทำหน้าที่เป็น Reverse Proxy คุณต้องแก้ไขไฟล์การตั้งค่าของ Nginx:</p>
+            <pre><code>sudo nano /etc/nginx/sites-available/default</code></pre>
+            <p>เพิ่มการตั้งค่าดังนี้:</p>
+            <pre><code>server {
+    listen 80;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</code></pre>
+            <p>จากนั้นรีสตาร์ท Nginx เพื่อให้การตั้งค่าใหม่มีผล:</p>
+            <pre><code>sudo systemctl restart nginx</code></pre>
+        </section>
+
+        <section class="section">
+            <h2>Load Balancing ด้วย Nginx</h2>
+            <p>Nginx สามารถทำหน้าที่เป็น Load Balancer เพื่อกระจายการโหลดไปยังหลายเซิร์ฟเวอร์. การตั้งค่าตัวอย่าง:</p>
+            <pre><code>upstream backend {
+    server 192.168.1.1;
+    server 192.168.1.2;
+}
+
+server {
+    listen 80;
+
+    location / {
+        proxy_pass http://backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</code></pre>
+            <p>การตั้งค่านี้จะช่วยให้ Nginx กระจายคำขอไปยังเซิร์ฟเวอร์หลายตัวภายในกลุ่ม backend.</p>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <div class="container text-center">
+            <p>&copy; 2024 การใช้งาน AWS EC2 และ Nginx. สงวนลิขสิทธิ์.</p>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
