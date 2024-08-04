@@ -1,59 +1,45 @@
+version: '3'
 services:
-  nginx-proxy:
-    image: jwilder/nginx-proxy
-    container_name: nginx-proxy
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/html:/usr/share/nginx/html
-      - ./nginx/vhost.d:/etc/nginx/vhost.d
-      - ./ssl:/etc/letsencrypt/live/ct519-463.ck2all.com
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-    networks:
-      - nginx-network
-
-  # letsencrypt-nginx-proxy-companion:
-  #   image: nginxproxy/acme-companion
-  #   container_name: letsencrypt-nginx-proxy-companion
-  #   volumes:
-  #     - ./nginx/certs:/etc/nginx/certs
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   environment:
-  #     - NGINX_PROXY_CONTAINER=nginx-proxy
-  #   networks:
-  #     - nginx-network
-
   web1:
-    build: ./web1
-    environment:
-      - VIRTUAL_HOST=ct519-463.ck2all.com
-      - VIRTUAL_PORT=80
-      - LETSENCRYPT_HOST=ct519-463.ck2all.com
-      - LETSENCRYPT_EMAIL=pornsupat1356@gmail.com
+    image: nginx:alpine
+    container_name: web1
+    volumes:
+      - ./web1:/usr/share/nginx/html
     networks:
-      - nginx-network
+      - backend
 
   web2:
-    build: ./web2
-    environment:
-      - VIRTUAL_HOST=ct519-463.ck2all.com
-      - VIRTUAL_PORT=80
-      - LETSENCRYPT_HOST=ct519-463.ck2all.com
-      - LETSENCRYPT_EMAIL=pornsupat1356@gmail.com
+    image: nginx:alpine
+    container_name: web2
+    volumes:
+      - ./web2:/usr/share/nginx/html
     networks:
-      - nginx-network
+      - backend
 
   web3:
-    build: ./web3
-    environment:
-      - VIRTUAL_HOST=ct519-463.ck2all.com
-      - VIRTUAL_PORT=80
-      - LETSENCRYPT_HOST=ct519-463.ck2all.com
-      - LETSENCRYPT_EMAIL=pornsupat1356@gmail.com
+    image: nginx:alpine
+    container_name: web3
+    volumes:
+      - ./web3:/usr/share/nginx/html
     networks:
-      - nginx-network
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/ssl
+    depends_on:
+      - web1
+      - web2
+      - web3
+    networks:
+      - backend
 
 networks:
-  nginx-network:
+  backend:
     driver: bridge
